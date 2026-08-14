@@ -1,9 +1,9 @@
-pandas
-numpy
-seaborn
-catboost
-xgboost
-scikit-learn
-dill
-Flask
--e.
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
+dill==0.4.1
+streamlit==1.61.1
+fastapi==0.141.1
+uvicorn[standard]==0.52.2
+pydantic==2.13.4
+-e .

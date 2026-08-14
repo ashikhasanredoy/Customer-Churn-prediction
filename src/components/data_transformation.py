@@ -1,5 +1,4 @@
 import os
-from py_compile import main
 import sys
 from dataclasses import dataclass
 
@@ -18,7 +17,7 @@ from src.exception import CustomException
 @dataclass
 
 class DataTransformationConfig:
-    preprocessor_obj_file_path=os.path.join('artifacts','preprocessor.pkl')
+    preprocessor_obj_file_path=os.path.join('artifact','preprocessor.pkl')
     
 
 class DataTransformation:
@@ -27,12 +26,12 @@ class DataTransformation:
         
     def get_data_transformer_obj(self):
         try:
-            num_columns=['SeniorCitizen', 'tenure', 'MonthlyCharges']
+            num_columns=['SeniorCitizen', 'tenure', 'MonthlyCharges','TotalCharges']
             cat_columns=['gender',
                         'Partner','Dependents', 'Contract',
                         'PhoneService', 'StreamingTV', 'PaperlessBilling',
                         'MultipleLines','TechSupport', 'StreamingMovies', 'PaymentMethod',
-                        'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TotalCharges']
+                        'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection']
             numerical_pipeline=Pipeline(
                 steps=[
                     ('imputer',SimpleImputer(strategy='mean')),
@@ -55,7 +54,7 @@ class DataTransformation:
                 [
                     ("numerical_pipeline",numerical_pipeline,num_columns),
                     ('catagorical_pipeline',catagorical_pipeline,cat_columns)
-                ]
+                ],sparse_threshold=0
             )
             logging.info("preprocessor object created sucessfully")
             return preprocessor
@@ -83,6 +82,8 @@ class DataTransformation:
             imput_feature_train_arr=preprocessor_obj.fit_transform(imput_features_train_df)
             input_feature_test_arr=preprocessor_obj.transform(input_features_test_df)
             
+            print("Train X shape:", imput_feature_train_arr.shape)
+            print("Train y shape:", target_feature_train_df.shape)
             
             train_arr=np.c_[imput_feature_train_arr,np.array(target_feature_train_df)]
             test_arr=np.c_[input_feature_test_arr,np.array(target_features_test_df)]
@@ -101,7 +102,4 @@ class DataTransformation:
             
         except Exception as e:
             raise CustomException (e,sys)
-        
-        
-if __name__ == "__main__":
-    main()        
+              
