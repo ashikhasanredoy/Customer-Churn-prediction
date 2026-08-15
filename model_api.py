@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from src.pipeline.predict_pipeline import PredictPipeline, CustomData
 from schema.user_input import UserInput
+from schema.response_models import PredictionResponse, ChurnRiskLevel
 
 
 app = FastAPI(
@@ -25,7 +26,7 @@ def health_check():
     }
 
 
-@app.post("/predict")
+@app.post("/predict",response_model=PredictionResponse)
 def make_prediction(user_input: UserInput):
 
     try:
@@ -54,17 +55,22 @@ def make_prediction(user_input: UserInput):
         features = data.get_dataframe()
 
         pipeline = PredictPipeline()
-        prediction = pipeline.predict(features)
+        prediction, confidence = pipeline.predict_with_confidence(features)
         prediction_value = prediction[0]
+        confidence_score = confidence[0]
 
-        return {
-            "success": True,
-            "prediction": prediction_value,
-            "churn_risk": "high" if str(prediction_value).strip().lower() in {"1", "yes"} else "low"
-        }
+        is_churn = str(prediction_value).strip().lower() in {"1", "yes"}
+        churn_risk = "high" if is_churn else "low"
+
+        return PredictionResponse(
+        success=True,
+        prediction="Yes",
+        churn_risk=ChurnRiskLevel.HIGH,
+        confidence_score=round(confidence_score, 4),
+        confidence_percentage=round(confidence_score * 100, 2)
+    )
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Prediction failed: {str(e)}"
-        )
+            detail=f"Prediction failed: {str(e)}" )
